@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Result Page</title>
+	<link rel="stylesheet" type="text/css" href="./stylesheet/style_result.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+	<header>
+			<h1 id="title"><span>Express</span>Book</h1>
+			<p>Have fun sharing your thoughts!</p>
+	</header>
+
+	<div id='container'>
+		<div id='container-div'></div>
+		<input type="text" name="message" id="message" onfocus="value = ' ' ">
+		<button id="send">Send</button>
+	</div>
+	<div id="participants"></div>
+</body>
+<script src="result.js"></script>
+<script type="text/javascript">
+		var socket = io();
+		let containerDiv = document.getElementById('container-div');
+		console.log(socket);
+		let sendBtn = document.getElementById('send');
+		let messagesDiv = document.getElementById('container-div');
+		let message = document.getElementById('message');
+		let participants = document.getElementById('participants');
+
+	sendBtn.addEventListener('click',function(){
+	let date = new Date();
+	let hours = date.getHours() > 12 ? date.getHours() - 12 : date.getHours();
+	let am_pm = date.getHours() >= 12 ? "PM" : "AM";
+        hours = hours < 10 ? "0" + hours : hours;
+    let minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+    let seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+
+	socket.emit('send', {
+		fname:'<%=Fname%>',
+		lname: '<%=Lname%>',
+		message: message.value,
+		color: '#349BDA',
+		hours: hours,
+		minutes: minutes,
+		seconds: seconds,
+		am_pm: am_pm
+	});
+})
+
+		socket.emit('welcome', {
+			fname: '<%=Fname %>',
+			lname: '<%=Lname%>'
+		});
+		
+	
+		socket.emit('participants',{
+			fname:'<%=Fname%>',
+			lname:'<%=Lname%>'
+		})
+
+		socket.on('hi', function(data){
+			containerDiv.innerHTML += '<br><p id=online></p><p>'+ data.fullName  + '  joined the server!</p><hr>';
+		} );
+
+		socket.on('sent', function(data){
+		messagesDiv.innerHTML += '<br><div id=yourMsg><div id=time>'+ data.hours + ':' + data.minutes + ':' +data.seconds + ' '+ data.am_pm + '</div><p>' + data.fullName + ': ' + data.message + '</p></div><hr>';
+	});
+
+	socket.on('participant', function(data){
+		participants.innerHTML = '<p id=participant>List of Participants:  '+'<br>' + data.join('<br>') + '</p>';
+	})
+</script>
+<script src="http://localhost:8080/socket.io/socket.io.js"></script>
+</html>
+
